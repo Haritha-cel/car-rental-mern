@@ -3,6 +3,7 @@ import { assets } from '../assets/assets'
 import Title from '../components/Title'
 import { useAppContext } from '../context/AppContext'
 import {motion} from 'motion/react'
+import toast from 'react-hot-toast'
 
 const MyBookings = () => {
 
