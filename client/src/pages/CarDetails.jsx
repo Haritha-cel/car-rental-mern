@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { assets, dummyCarData } from '../assets/assets'
+import { assets } from '../assets/assets'
 import Loader from '../components/Loader'
 import { useAppContext } from '../context/AppContext'
 import toast from 'react-hot-toast'
@@ -18,6 +18,21 @@ const CarDetails = () => {
 
   const handleSubmit = async (e)=>{
     e.preventDefault();
+
+    // ✅ Defensive Validation
+    if (!pickupDate || !returnDate) {
+      return toast.error("Please select both pickup and return dates");
+    }
+    
+    const today = new Date().toISOString().split('T')[0];
+    if (pickupDate < today) {
+      return toast.error("Pickup date cannot be in the past");
+    }
+    
+    if (returnDate <= pickupDate) {
+      return toast.error("Return date must be after pickup date");
+    }
+
     try {
       const {data} = await axios.post('/api/bookings/create', {
         car: id,
