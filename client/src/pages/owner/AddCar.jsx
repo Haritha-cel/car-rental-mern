@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import Title from '../../components/owner/Title'
+import Input from '../../components/ui/Input'
+import Select from '../../components/ui/Select'
 import { assets } from '../../assets/assets'
 import { useAppContext } from '../../context/AppContext'
 import toast from 'react-hot-toast'
@@ -80,116 +82,40 @@ const AddCar = () => {
           <p className='text-sm text-gray-500'>Upload a picture of your car</p>
         </div>
 
-        {/* Car Brand & Model */}
+        {/* Refactored Form Fields */}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-          <div className='flex flex-col w-full'>
-            <label>Brand</label>
-            <input type='text' placeholder='e.g. BMW, Mercedes, Audi...' required
-            className='px-3 py-2 mt-1 border border-borderColor rounded-md
-            outline-none' value={car.brand} onChange={e=> setCar({...car, brand: e.
-              target.value})}/>
-          </div>
-          <div className='flex flex-col w-full'>
-            <label>Model</label>
-            <input type='text' placeholder='e.g. X5, E-Class, M4...' required
-            className='px-3 py-2 mt-1 border border-borderColor rounded-md
-            outline-none' value={car.model} onChange={e=> setCar({...car, model: e.
-              target.value})}/>
-          </div>
+          <Input label="Brand" placeholder='e.g. BMW, Mercedes, Audi' required value={car.brand} onChange={e=> setCar({...car, brand: e.target.value})} />
+          <Input label="Model" placeholder='e.g. X5, E-Class, M4' required value={car.model} onChange={e=> setCar({...car, model: e.target.value})} />
         </div>
 
-        {/* Car Year, Price, Category */}
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
-          <div className='flex flex-col w-full'>
-            <label>Year</label>
-            <input type='number' placeholder='2025' required
-            className='px-3 py-2 mt-1 border border-borderColor rounded-md
-            outline-none' value={car.year} onChange={e=> setCar({...car, year: e.
-              target.value})}/>
-          </div>
-          <div className='flex flex-col w-full'>
-            <label>Daily Price ({currency})</label>
-            <input type='number' placeholder='100' required
-            className='px-3 py-2 mt-1 border border-borderColor rounded-md
-            outline-none' value={car.pricePerDay} onChange={e=> setCar({...car, pricePerDay: e.
-              target.value})}/>
-          </div>
-          <div className='flex flex-col w-full'>
-            <label>Category</label>
-            <select onChange={e=> setCar({...car, category: e.target.value})} value=
-            {car.category} className='px-3 py-2 mt-1 border border-borderColor 
-            rounded-md outline-none'>
-              <option value="">Select a category</option>
-              <option value="Sedan">Sedan</option>
-              <option value="SUV">SUV</option>
-              <option value="Van">Van</option>
-            </select>
-          </div>
+          <Input label="Year" type="number" placeholder='2025' required value={car.year} onChange={e=> setCar({...car, year: e.target.value})} />
+          <Input label={`Daily Price (${currency})`} type="number" placeholder='100' required value={car.pricePerDay} onChange={e=> setCar({...car, pricePerDay: e.target.value})} />
+          <Select label="Category" value={car.category} onChange={e=> setCar({...car, category: e.target.value})} options={["Sedan", "SUV", "Van"]} placeholder="Select a category" />
         </div>
 
-        {/* Car Transmission, Fuel Type, Seating Capacity */}
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
-          <div className='flex flex-col w-full'>
-            <label>Transmission</label>
-            <select onChange={e=> setCar({...car, transmission: e.target.value})} value=
-            {car.transmission} className='px-3 py-2 mt-1 border border-borderColor 
-            rounded-md outline-none'>
-              <option value="">Select a transmission</option>
-              <option value="Automatic">Automatic</option>
-              <option value="Manual">Manual</option>
-              <option value="Semi-Automatic">Semi-Automatic</option>
-            </select>
-          </div>
-          <div className='flex flex-col w-full'>
-            <label>Fuel Type</label>
-            <select onChange={e=> setCar({...car, fuel_type: e.target.value})} value=
-            {car.fuel_type} className='px-3 py-2 mt-1 border border-borderColor 
-            rounded-md outline-none'>
-              <option value="">Select a fuel type</option>
-              <option value="Gas">Gas</option>
-              <option value="Diesel">Diesel</option>
-              <option value="Petrol">Petrol</option>
-              <option value="Electric">Electric</option>
-              <option value="Hybrid">Hybrid</option>
-            </select>
-          </div>
-          <div className='flex flex-col w-full'>
-            <label>Seating Capacity</label>
-            <input type='number' placeholder='4' required
-            className='px-3 py-2 mt-1 border border-borderColor rounded-md
-            outline-none' value={car.seating_capacity} onChange={e=> setCar({...car, seating_capacity: e.
-              target.value})}/>
-          </div>
+          <Select label="Transmission" value={car.transmission} onChange={e=> setCar({...car, transmission: e.target.value})} options={["Automatic", "Manual", "Semi-Automatic"]} placeholder="Select a transmission" />
+          <Select label="Fuel Type" value={car.fuel_type} onChange={e=> setCar({...car, fuel_type: e.target.value})} options={["Gas", "Diesel", "Petrol", "Electric", "Hybrid"]} placeholder="Select a fuel type" />
+          <Input label="Seating Capacity" type="number" placeholder='4' required value={car.seating_capacity} onChange={e=> setCar({...car, seating_capacity: e.target.value})} />
         </div>
 
-        {/* Car Location */}
-          <div className='flex flex-col w-full'>
-            <label>Transmission</label>
-            <select onChange={e=> setCar({...car, location: e.target.value})} value=
-            {car.location} className='px-3 py-2 mt-1 border border-borderColor 
-            rounded-md outline-none'>
-              <option value="">Select a location</option>
-              <option value="New York">New York</option>
-              <option value="Los Angeles">Los Angeles</option>
-              <option value="Houston">Houston</option>
-              <option value="Chicago">Chicago</option>
-            </select>
-          </div>
+        <Select label="Location" value={car.location} onChange={e=> setCar({...car, location: e.target.value})} options={["New York", "Los Angeles", "Houston", "Chicago"]} placeholder="Select a location" />
 
-          {/* Car Description*/}
-          <div className='flex flex-col w-full'>
-            <label>Description</label>
-            <textarea rows={5} placeholder='e.g. A luxurious SUV with a spacious interior and a powerful engine.' required
-            className='px-3 py-2 mt-1 border border-borderColor rounded-md
-            outline-none' value={car.description} onChange={e=> setCar({...car, description: e.
-              target.value})}></textarea>
-          </div>
+        {/* Car Description*/}
+        <div className='flex flex-col w-full'>
+          <label className='text-sm text-gray-600'>Description</label>
+          <textarea rows={5} placeholder='e.g. A luxurious SUV with a spacious interior and a powerful engine.' required
+          className='px-3 py-2 mt-1 border border-borderColor rounded-md
+          outline-none text-gray-500' value={car.description} onChange={e=> setCar({...car, description: e.
+            target.value})}></textarea>
+        </div>
 
-          <button className='flex items-center gap-2 px-4 py-2.5 mt-4 bg-primary
-          text-white rounded-md font-medium w-max cursor-pointer'>
-            <img src={assets.tick_icon} alt=''/>
-            {isLoading ? 'Listing...' : 'List Your Car'}
-          </button>
+        <button className='flex items-center gap-2 px-4 py-2.5 mt-4 bg-primary
+        text-white rounded-md font-medium w-max cursor-pointer'>
+          <img src={assets.tick_icon} alt=''/>
+          {isLoading ? 'Listing...' : 'List Your Car'}
+        </button>
 
       </form>
       </div>
