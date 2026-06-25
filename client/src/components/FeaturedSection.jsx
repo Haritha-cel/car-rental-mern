@@ -50,9 +50,7 @@ const FeaturedSection = () => {
         initial={{y: 20, opacity: 0}}
         whileInView={{y: 0, opacity: 1}}
         transition={{duration: 0.4, delay: 0.6}}
-        onClick={()=> {
-            navigate('/cars'); scrollTo(0,0)
-        }}
+        onClick={()=> navigate('/cars')}
         className='flex items-center justify-center gap-2 px-6 py-2 border
         border-borderColor hover:bg-gray-50 rounded-md mt-18 cursor-pointer'>
             Explore all cars <img src={assets.arrow_icon} alt='arrow' />
