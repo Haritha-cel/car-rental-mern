@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import Title from '../components/Title'
-import { assets, dummyCarData } from '../assets/assets'
+import { assets } from '../assets/assets'
 import CarCard from '../components/CarCard'
 import { useSearchParams } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
 import toast from 'react-hot-toast'
 import { motion } from 'motion/react'
+import useDebounce from '../hooks/useDebounce'
 
 const Cars = () => {
 
@@ -20,22 +21,25 @@ const Cars = () => {
   const [input, setInput] = useState('')
   const [sortBy, setSortBy] = useState('')
 
+  // ✅ Advanced: Debounce the search input
+  const debouncedSearch = useDebounce(input, 500)
+
   const isSearchData = pickupLocation && pickupDate && returnDate
   const [filteredCars, setFilteredCars] = useState([])
 
   const applyFilter = async () => {
     let filtered = cars.slice();
 
-    if (input !== '') {
+    if (debouncedSearch !== '') {
       filtered = filtered.filter((car) => {
-        return car.brand.toLowerCase().includes(input.toLowerCase())
-          || car.model.toLowerCase().includes(input.toLowerCase())
-          || car.category.toLowerCase().includes(input.toLowerCase())
-          || car.transmission.toLowerCase().includes(input.toLowerCase())
+        return car.brand.toLowerCase().includes(debouncedSearch.toLowerCase())
+          || car.model.toLowerCase().includes(debouncedSearch.toLowerCase())
+          || car.category.toLowerCase().includes(debouncedSearch.toLowerCase())
+          || car.transmission.toLowerCase().includes(debouncedSearch.toLowerCase())
       })
     }
 
-    // Add this sorting logic
+    // sorting logic
     if (sortBy === 'price-low') filtered.sort((a, b) => a.pricePerDay - b.pricePerDay)
     if (sortBy === 'price-high') filtered.sort((a, b) => b.pricePerDay - a.pricePerDay)
     if (sortBy === 'year-new') filtered.sort((a, b) => b.year - a.year)
@@ -61,7 +65,7 @@ const Cars = () => {
 
   useEffect(() => {
     cars.length > 0 && !isSearchData && applyFilter()
-  }, [input, cars, sortBy])
+  }, [debouncedSearch, cars, sortBy])
 
   return (
     <div>
