@@ -25,15 +25,16 @@ const Sidebar = () => {
             }else{
                 toast.error(data.message)
             }
-        }catch {
+        }catch (error) { // ✅ Fixed: added (error) here so it doesn't crash
             toast.error(error.message)
         }
     }     
 
   return (
 
+    // ✅ Fixed: Added solid background, shadow, and proper z-index for mobile drawer
     <div className='relative min-h-screen md:flex flex-col items-center pt-8 
-    max-w-13 md:max-w-60 w-full border-r border-borderColor text-sm'>
+    max-w-60 w-full border-r border-borderColor text-sm bg-white md:bg-transparent shadow-xl md:shadow-none z-50'>
 
         <div className='group relative'>
             <label htmlFor='image'>
@@ -56,7 +57,9 @@ const Sidebar = () => {
             text-primary cursor-pointer' onClick={updateImage}>Save <img src={assets.check_icon} 
             width={13} alt='' /></button>
         )}
-        <p className='mt-2 text-base max-md:hidden'>{user?.name}</p>
+        
+        {/* ✅ Fixed: Removed max-md:hidden so the name shows on mobile */}
+        <p className='mt-2 text-base'>{user?.name}</p>
 
         <div className='w-full'>
             {ownerMenuLinks.map((link, index)=>(
@@ -65,7 +68,10 @@ const Sidebar = () => {
                 pathname ? 'bg-primary/10 text-primary' : 'text-gray-600'}`}>
                     <img src={link.path === location.pathname ? link.coloredIcon : link.icon}
                     alt='car icon'/>
-                    <span className='max-md:hidden'>{link.name}</span>
+                    
+                    {/* ✅ Fixed: Removed max-md:hidden so text shows on mobile */}
+                    <span>{link.name}</span>
+                    
                     <div className={`${link.path === location.pathname && 'bg-primary'}
                     w-1.5 h-8 rounded-1 right-0 absolute`}></div>
                 </NavLink>
