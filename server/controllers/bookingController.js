@@ -1,73 +1,41 @@
 import Booking from "../models/Booking.js"
 import Car from "../models/Car.js"
 
-
-// Function to check Availability of Car for a given Date
-const checkAvailability = async (car, pickupDate, returnDate)=>{
-    const bookings = await Booking.find({
-        car,
-        pickupDate: {$lte: returnDate},
-        returnDate: {$gte: pickupDate},
-    })
-    return bookings.length === 0;
-}
-
-// API to check Availability of Cars for the given Date and location
-export const checkAvailabilityOfCar = async (req, res)=>{
+// ✅ Optimized API to check Availability (Eliminates N+1 Query Problem)
+export const checkAvailabilityOfCar = async (req, res) => {
     try {
-        const {location, pickupDate, returnDate} = req.body
+        const { location, pickupDate, returnDate } = req.body;
 
-        // fetch all available cars for the given location
-        const cars = await Car.find({location, isAvailable: true})
-
-        // check car availability for the given date range using promise
-        const availableCarsPromises = cars.map(async (car)=>{
-        const isAvailable = await checkAvailability(car._id, pickupDate, returnDate)
-        return {...car._doc, isAvailable: isAvailable}
-    })
-
-    let availableCars = await Promise.all(availableCarsPromises);
-    availableCars = availableCars.filter(car => car.isAvailable === true)
-
-    res.json({success: true, availableCars})
-
-    } catch (error) {
-        console.log(error.message);
-        res.json({success: false, message: error.message})
-    }
-}
-
-/*
-// API to Create Booking
-export const createBooking = async (req, res)=>{
-    try {
-        const {_id} = req.user;
-        const {car, pickupDate, returnDate} = req.body;
-
-        const isAvailable = await checkAvailability(car, pickupDate, returnDate)
-        if(!isAvailable){
-            return res.json({success: false, message: "Car is not available"})
-        }
+        // 1. Fetch all available cars for the given location
+        const cars = await Car.find({ location, isAvailable: true });
         
-        const carData = await Car.findById(car)
+        if (cars.length === 0) {
+            return res.json({ success: true, availableCars: [] });
+        }
 
-        // Calculate price based on pickupDate and returnDate
-        const picked = new Date(pickupDate);
-        const returned = new Date(returnDate);
-        const noOfDays = Math.ceil((returned - picked) / (1000 * 60 * 60 * 24))
-        const price = carData.pricePerDay * noOfDays;
+        // 2. Extract just the IDs of these cars
+        const carIds = cars.map(car => car._id);
 
-        await Booking.create({car, owner: carData.owner, user: _id, pickupDate,
-        returnDate, price})
+        // 3. Find ALL bookings for THESE cars that overlap with the requested dates in ONE query
+        const overlappingBookings = await Booking.find({
+            car: { $in: carIds },
+            pickupDate: { $lte: returnDate },
+            returnDate: { $gte: pickupDate }
+        });
 
-        res.json({success: true, message: "Booking Created"})
+        // 4. Put the booked car IDs into a Set for lightning-fast O(1) lookup
+        const bookedCarIds = new Set(overlappingBookings.map(b => b.car.toString()));
+
+        // 5. Filter out the cars that are booked
+        const availableCars = cars.filter(car => !bookedCarIds.has(car._id.toString()));
+
+        res.json({ success: true, availableCars });
 
     } catch (error) {
         console.log(error.message);
-        res.json({success: false, message: error.message})
+        res.json({ success: false, message: error.message });
     }
 }
-*/
 
 // API to Create Booking
 export const createBooking = async (req, res) => {
@@ -75,43 +43,48 @@ export const createBooking = async (req, res) => {
     const { _id } = req.user;
     const { car, pickupDate, returnDate } = req.body;
 
-    // ✅ Convert to Date objects
+    // Convert to Date objects
     const picked = new Date(pickupDate);
     const returned = new Date(returnDate);
     const today = new Date();
 
-    // 🛑 Validate date formats
+    // Validate date formats
     if (isNaN(picked.getTime()) || isNaN(returned.getTime())) {
       return res.json({ success: false, message: "Invalid date format" });
     }
 
-    // 🛑 Ensure pickup date is not in the past
+    // Ensure pickup date is not in the past
     if (picked < today.setHours(0, 0, 0, 0)) {
       return res.json({ success: false, message: "Pickup date cannot be in the past" });
     }
 
-    // 🛑 Ensure return date is after pickup date
+    // Ensure return date is after pickup date
     if (returned <= picked) {
       return res.json({ success: false, message: "Return date must be after pickup date" });
     }
 
-    // ✅ Check car availability for selected period
-    const isAvailable = await checkAvailability(car, pickupDate, returnDate);
-    if (!isAvailable) {
+    // ✅ Optimized single-car availability check (Replaces old helper function)
+    const overlappingBooking = await Booking.findOne({
+      car: car,
+      pickupDate: { $lte: returnDate },
+      returnDate: { $gte: pickupDate }
+    });
+
+    if (overlappingBooking) {
       return res.json({ success: false, message: "Car is not available for the selected dates" });
     }
 
-    // ✅ Fetch car data
+    // Fetch car data
     const carData = await Car.findById(car);
     if (!carData) {
       return res.json({ success: false, message: "Car not found" });
     }
 
-    // ✅ Calculate number of days and total price
+    // Calculate number of days and total price
     const noOfDays = Math.ceil((returned - picked) / (1000 * 60 * 60 * 24));
     const price = carData.pricePerDay * noOfDays;
 
-    // ✅ Create booking
+    // Create booking
     await Booking.create({
       car,
       owner: carData.owner,
@@ -128,16 +101,11 @@ export const createBooking = async (req, res) => {
   }
 };
 
-
-
-
-
 // API to List User Bookings
 export const getUserBookings = async (req, res)=>{
     try {
         const {_id} = req.user;
-        const bookings = await Booking.find({ user: _id }).populate("car").sort
-        ({createdAt: -1})
+        const bookings = await Booking.find({ user: _id }).populate("car").sort({createdAt: -1})
 
         res.json({success: true, bookings})
 
@@ -153,8 +121,7 @@ export const getOwnerBookings = async (req, res)=>{
         if(req.user.role !== 'owner'){
             return res.json({success: false, message: "Unauthorized"})
         }
-        const bookings = await Booking.find({ owner: req.user._id }).populate
-        ("car user").select("-user.password").sort({createdAt: -1})
+        const bookings = await Booking.find({ owner: req.user._id }).populate("car user").select("-user.password").sort({createdAt: -1})
 
         res.json({success: true, bookings})
 
