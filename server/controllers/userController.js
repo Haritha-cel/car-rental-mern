@@ -3,14 +3,6 @@ import bcrypt from "bcrypt"
 import jwt from 'jsonwebtoken'
 import Car from "../models/Car.js";
 
-/*
-// Generate JWT Token
-const generateToken = (userId)=>{
-    const payload = { id: userId };
-    return jwt.sign(payload, process.env.JWT_SECRET)
-}
-*/
-
 // Generate JWT Token with expiry
 const generateToken = (userId) => {
     const payload = { id: userId };
@@ -94,3 +86,5 @@ export const getCars = async (req, res)=>{
         res.json({success: false, message: error.message})
     }
 }
+
+
